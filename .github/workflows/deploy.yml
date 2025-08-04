@@ -2,6 +2,7 @@ name: Deploy frontdoor
 on:
   push:
     branches: [ main, dev ]
+  workflow_dispatch: {}
 
 permissions:
   contents: read
@@ -22,7 +23,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Set branch-specific config
+      - name: Branch config
         id: cfg
         run: |
           if [[ "${GITHUB_REF##*/}" == "main" ]]; then
@@ -33,24 +34,26 @@ jobs:
             echo "MIN_INSTANCES=0" >> $GITHUB_OUTPUT
           fi
           echo "IMAGE=${{ env.REGION }}-docker.pkg.dev/${{ env.PROJECT_ID }}/${{ env.AR_REPO }}/${{ env.IMAGE_NAME }}:${GITHUB_SHA}" >> $GITHUB_OUTPUT
-          
-      - uses: google-github-actions/setup-gcloud@v2
-        with:
-            project_id: ${{ env.PROJECT_ID }} 
+
+      # Authenticate to Google Cloud using WIF (OIDC)
       - uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.GCP_WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_SERVICE_ACCOUNT_EMAIL }}
-          project_id: ${{ env.PROJECT_ID }} 
-        # Official OIDC auth action.
-        # https://github.com/google-github-actions/auth
+        # Docs: https://github.com/google-github-actions/auth
 
+      # Install & configure gcloud for this project
+      - uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+        # Docs: https://github.com/google-github-actions/setup-gcloud
 
-
-      - name: Configure Docker to push to Artifact Registry
+      # Allow Docker to push to Artifact Registry (regional host)
+      - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
+        # Docs: https://cloud.google.com/artifact-registry/docs/docker/authentication
 
-      - name: Build & push
+      - name: Build & push image
         run: |
           docker build -t "${{ steps.cfg.outputs.IMAGE }}" .
           docker push "${{ steps.cfg.outputs.IMAGE }}"
@@ -63,5 +66,4 @@ jobs:
             --allow-unauthenticated \
             --min-instances "${{ steps.cfg.outputs.MIN_INSTANCES }}" \
             --service-account "cr-frontdoor@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
-        # Min instances keeps prod warm; see docs:
-        # https://cloud.google.com/run/docs/configuring/min-instances
+        # Docs: https://cloud.google.com/sdk/gcloud/reference/run/deploy
