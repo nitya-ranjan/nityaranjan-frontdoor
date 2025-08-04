@@ -49,8 +49,6 @@ jobs:
 
       - name: Configure Docker to push to Artifact Registry
         run: gcloud auth configure-docker ${{ env.REGION }}-docker.pkg.dev --quiet
-        # Doc: Configure Docker auth for Artifact Registry.
-        # https://cloud.google.com/artifact-registry/docs/docker/authentication
 
       - name: Build & push
         run: |
