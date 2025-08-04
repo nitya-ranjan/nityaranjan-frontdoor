@@ -5,4 +5,4 @@ COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 COPY app ./app
 # Cloud Run provides $PORT
-CMD ["gunicorn","-k","uvicorn_worker.UvicornWorker","-w","2","-b","0.0.0.0:$PORT","app.main:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "app.main:app"]
