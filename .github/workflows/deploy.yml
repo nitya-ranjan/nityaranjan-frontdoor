@@ -23,16 +23,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: 'Debug OIDC Token'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const token = await core.getIDToken()
-            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
-            console.log("--- OIDC Token Payload (No Environment in YML) ---")
-            console.log(payload)
-            console.log("-------------------------------------------------")
-
       - name: Branch config
         id: cfg
         run: |
