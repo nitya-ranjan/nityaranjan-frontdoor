@@ -22,7 +22,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4
-
       - name: Branch config
         id: cfg
         run: |
