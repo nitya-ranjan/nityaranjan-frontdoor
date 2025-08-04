@@ -61,7 +61,6 @@ jobs:
             --image "${{ steps.cfg.outputs.IMAGE }}" \
             --region "${{ env.REGION }}" \
             --allow-unauthenticated \
-            --concurrency 80 \
             --min-instances "${{ steps.cfg.outputs.MIN_INSTANCES }}" \
             --service-account "cr-frontdoor@${{ env.PROJECT_ID }}.iam.gserviceaccount.com"
         # Min instances keeps prod warm; see docs:
