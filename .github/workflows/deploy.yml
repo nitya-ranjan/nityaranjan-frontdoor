@@ -23,6 +23,19 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: 'Debug OIDC Token'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const token = await core.getIDToken()
+            const payload = JSON.parse(Buffer.from(token.split('.')[1], 'base64').toString())
+            console.log("--- OIDC Token Payload ---")
+            console.log(payload)
+            console.log("--------------------------")
+            if (payload.repository !== 'nitya-ranjan/nityaranjan-frontdoor') {
+              core.setFailed(`ERROR: The token's repository claim is [${payload.repository}] but the IAM policy expects [nitya-ranjan/nityaranjan-frontdoor]. Check for typos in the repo name or environment/fork issues.`);
+            }
+
       - name: Branch config
         id: cfg
         run: |
